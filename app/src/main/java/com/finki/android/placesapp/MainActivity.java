@@ -14,6 +14,8 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -83,6 +85,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_layout, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_button: {
+                if (ActivityCompat.checkSelfPermission(self, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    Intent intent = new Intent(this, FavouritesActivity.class);
+                    intent.putExtra("currentLatitude", currentLocation.getLatitude());
+                    intent.putExtra("currentLongitude", currentLocation.getLongitude());
+                    startActivity(intent);
+                } else {
+                    if (!askedForPermission) {
+                        askedForPermission = true;
+                        ActivityCompat.requestPermissions(selfActivity,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                    }
+                }
+            }
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         IntentFilter intentFilter = new IntentFilter(GetPlacesListService.FETCH_FINISHED);
@@ -97,23 +129,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void searchClicked(View view) {
         callForService();
-    }
-
-    public void favouritesClicked(View view) {
-        if (ActivityCompat.checkSelfPermission(self, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Intent intent = new Intent(this, FavouritesActivity.class);
-            intent.putExtra("currentLatitude", currentLocation.getLatitude());
-            intent.putExtra("currentLongitude", currentLocation.getLongitude());
-            startActivity(intent);
-        } else {
-            if (!askedForPermission) {
-                askedForPermission = true;
-                ActivityCompat.requestPermissions(selfActivity,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-            }
-        }
     }
 
     @Override

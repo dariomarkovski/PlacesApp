@@ -30,8 +30,8 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.MyViewHolder
 
         public MyViewHolder(View view) {
             super(view);
-            name = (TextView) view.findViewById(R.id.name);
-            rating = (TextView) view.findViewById(R.id.rating);
+            name = view.findViewById(R.id.name);
+            rating = view.findViewById(R.id.rating);
             viewOnMapButton = view.findViewById(R.id.viewOnMapButton);
             deleteButton = view.findViewById(R.id.deleteButton);
 
