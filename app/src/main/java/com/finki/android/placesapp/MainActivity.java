@@ -23,7 +23,9 @@ import android.widget.TextView;
 
 import com.finki.android.placesapp.model.Place;
 import com.finki.android.placesapp.service.GetPlacesListService;
+import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
 
     LocationManager locationManager;
     PlacesResultBroadcastReceiver placesResultBroadcastReceiver;
+
+    Location currentLocation;
 
     List<Place> placeList;
     boolean mLocationPermissionGranted = false;
@@ -96,6 +100,27 @@ public class MainActivity extends AppCompatActivity {
         callForService();
     }
 
+    public void favouritesClicked(View view) {
+        if (ActivityCompat.checkSelfPermission(self, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            location = new Location("HOME");
+            location.setLongitude(21.42);
+            location.setLatitude(41.99);
+            currentLocation = location;
+            Intent intent = new Intent(this, FavouritesActivity.class);
+            intent.putExtra("currentLatitude", currentLocation.getLatitude());
+            intent.putExtra("currentLongitude", currentLocation.getLongitude());
+            startActivity(intent);
+        } else {
+            if (!askedForPermission) {
+                askedForPermission = true;
+                ActivityCompat.requestPermissions(selfActivity,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            }
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -116,8 +141,12 @@ public class MainActivity extends AppCompatActivity {
         SeekBar seekBar = findViewById(R.id.placeDistanceSeekBar);
         if (ActivityCompat.checkSelfPermission(self, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-            Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            Location location = currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             Intent intent = new Intent(self, GetPlacesListService.class);
+            location = new Location("HOME");
+            location.setLongitude(21.42);
+            location.setLatitude(41.99);
+            currentLocation = location;
             intent.putExtra(GetPlacesListService.LOCATION_EXTRA, location);
             intent.putExtra(GetPlacesListService.NAME_EXTRA, editText.getText().toString());
             intent.putExtra(GetPlacesListService.RADIUS_EXTRA, (double) seekBar.getProgress() * 100);
@@ -139,9 +168,11 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             try {
                 placeList = (ArrayList<Place>) intent.getSerializableExtra(GetPlacesListService.FETCH_FINISHED_RESULT);
-                for (Place place : placeList) {
-                    System.out.println(place.name);
-                }
+                Intent mapIntent = new Intent(context, MapsActivity.class);
+                mapIntent.putExtra("currentLatitude", currentLocation.getLatitude());
+                mapIntent.putExtra("currentLongitude", currentLocation.getLongitude());
+                mapIntent.putExtra("placeList", (Serializable)placeList);
+                startActivity(mapIntent);
             } catch (Exception e) {
                 Log.e("ERROR: ", e.getMessage());
             }
