@@ -24,14 +24,21 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.finki.android.placesapp.model.Place;
+import com.finki.android.placesapp.persistence.AppDatabase;
 import com.finki.android.placesapp.service.GetPlacesListService;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
+    private AppDatabase base;
 
     final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
@@ -51,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        base = AppDatabase.getAppDatabase(getApplicationContext());
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -157,6 +166,72 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(GetPlacesListService.NAME_EXTRA, editText.getText().toString());
             intent.putExtra(GetPlacesListService.RADIUS_EXTRA, (double) seekBar.getProgress() * 100);
             intent.putExtra(GetPlacesListService.TYPES_EXTRA, (String) spinner.getItemAtPosition(spinner.getSelectedItemPosition()));
+            startService(intent);
+        } else {
+            if (!askedForPermission) {
+                askedForPermission = true;
+                ActivityCompat.requestPermissions(selfActivity,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            }
+        }
+    }
+
+    public void taxiCompanies(View view) {
+        Intent intent = new Intent(this, TaxiCompanies.class);
+        startActivity(intent);
+    }
+
+    public void recommendedPlaces(View view){
+        List<Place> favourites = base.placeDao().getAll();
+        HashMap<String, Integer> ranking = new HashMap<>();
+        double averageLatitude = 0;
+        double averageLongitude = 0;
+        for (Place place: favourites){
+            averageLatitude += place.geometry.location.lat;
+            averageLongitude += place.geometry.location.lng;
+            for(String type: place.types){
+                if(ranking.containsKey(type)){
+                    int current = ranking.get(type);
+                    ranking.remove(type);
+                    current++;
+                    ranking.put(type, current);
+                } else {
+                    ranking.put(type, 1);
+                }
+            }
+        }
+        averageLatitude /= favourites.size();
+        averageLongitude /= favourites.size();
+        Iterator it = ranking.entrySet().iterator();
+        int firstTypeApperances = 0, secondTypeApperances = 0;
+        String firstType = "", secondType="";
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if((Integer)pair.getValue() > firstTypeApperances){
+                firstTypeApperances =(Integer)pair.getValue();
+                firstType = (String)pair.getKey();
+            }
+        }
+        ranking.remove(firstType);
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if((Integer)pair.getValue() > secondTypeApperances){
+                secondTypeApperances =(Integer)pair.getValue();
+                secondType = (String)pair.getKey();
+            }
+        }
+        ranking.remove(firstType);
+        if (ActivityCompat.checkSelfPermission(self, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+            Intent intent = new Intent(self, GetPlacesListService.class);
+            Location location = new Location("START");
+            location.setLatitude(averageLatitude);
+            location.setLongitude(averageLongitude);
+            currentLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            intent.putExtra(GetPlacesListService.LOCATION_EXTRA, location);
+            intent.putExtra(GetPlacesListService.RADIUS_EXTRA, (double) 5000);
+            intent.putExtra(GetPlacesListService.TYPES_EXTRA, (String) firstType+","+secondType);
             startService(intent);
         } else {
             if (!askedForPermission) {

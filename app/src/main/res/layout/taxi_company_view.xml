@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/name"
+        android:id="@+id/nameTaxi"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -20,28 +20,19 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/rating"
+        android:id="@+id/numberTaxi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:textColor="#D3D3D3" />
 
     <Button
-        android:id="@+id/showDetailsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@id/deleteButton"
-        android:layout_toStartOf="@id/deleteButton"
-        android:text="Show Details" />
-
-    <Button
-        android:id="@+id/deleteButton"
+        android:id="@+id/callButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:text="Delete" />
+        android:text="Call" />
 
 </RelativeLayout>

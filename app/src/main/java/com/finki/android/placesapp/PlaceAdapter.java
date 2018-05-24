@@ -26,13 +26,13 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.MyViewHolder
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name, rating;
-        public Button viewOnMapButton, deleteButton;
+        public Button showDetailsButton, deleteButton;
 
         public MyViewHolder(View view) {
             super(view);
             name = view.findViewById(R.id.name);
             rating = view.findViewById(R.id.rating);
-            viewOnMapButton = view.findViewById(R.id.viewOnMapButton);
+            showDetailsButton = view.findViewById(R.id.showDetailsButton);
             deleteButton = view.findViewById(R.id.deleteButton);
 
         }
@@ -57,21 +57,29 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.MyViewHolder
         final Place place = placeList.get(position);
         holder.name.setText(place.name);
         holder.rating.setText("Rating: " + Double.toString(place.rating));
-        holder.viewOnMapButton.setOnClickListener(new View.OnClickListener() {
+        holder.showDetailsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                List<Place> placeList = new ArrayList<Place>();
-                placeList.add(place);
+                Intent detailsIntent = new Intent(context, PlaceDetailsActivity.class);
+                detailsIntent.putExtra("place", place);
+                detailsIntent.putExtra("currentLatitude", intent.getDoubleExtra("currentLatitude", 21.42));
+                detailsIntent.putExtra("currentLongitude", intent.getDoubleExtra("currentLongitude", 41.99));
+                context.startActivity(detailsIntent);
 
-                Double currentLatitude = intent.getDoubleExtra("currentLatitude", 21.42);
-                Double currentLongitude = intent.getDoubleExtra("currentLongitude", 41.99);
+//                List<Place> placeList = new ArrayList<Place>();
+//                placeList.add(place);
+//
+//                Double currentLatitude = intent.getDoubleExtra("currentLatitude", 21.42);
+//                Double currentLongitude = intent.getDoubleExtra("currentLongitude", 41.99);
+//
+//                Intent mapIntent = new Intent(context, MapsActivity.class);
+//                mapIntent.putExtra("currentLatitude", currentLatitude);
+//                mapIntent.putExtra("currentLongitude", currentLongitude);
+//                mapIntent.putExtra("placeList", (Serializable) placeList);
+//                context.startActivity(mapIntent);
 
-                Intent mapIntent = new Intent(context, MapsActivity.class);
-                mapIntent.putExtra("currentLatitude", currentLatitude);
-                mapIntent.putExtra("currentLongitude", currentLongitude);
-                mapIntent.putExtra("placeList", (Serializable) placeList);
-                context.startActivity(mapIntent);
+
             }
         });
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
